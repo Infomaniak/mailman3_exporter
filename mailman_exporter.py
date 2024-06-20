@@ -4,9 +4,8 @@
     Prometheus mailman3 exporter using rest api's.
     Created by rivimey.
 """
-
 import requests
-import argparse
+from argparse import ArgumentParser, Namespace
 import logging
 import re
 import sys
@@ -14,6 +13,7 @@ import signal
 import time
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
+from typing import Any
 
 exporter = None
 MM_API_VERS = "3.1"
@@ -22,7 +22,7 @@ PROCESSING_TIME = None
 
 
 class metric_processing_time:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.start = None
         self.name = name
 
@@ -43,8 +43,8 @@ class MailmanExporter:
         self.mailman_user = ""
         self.mailman_password = ""
 
-    def args(self):
-        parser = argparse.ArgumentParser(description='Mailman3 Prometheus metrics exporter')
+    def args(self) -> Namespace:
+        parser = ArgumentParser(description='Mailman3 Prometheus metrics exporter')
         parser.add_argument('--log-level', default='INFO', choices=['debug', 'info', 'warning', 'error', 'critical'],
                             help='Detail level to log. (default: info)')
         parser.add_argument('-l', '--web.listen', dest='web_listen', type=str, default="localhost:9934",
@@ -75,13 +75,13 @@ class MailmanExporter:
 
         return args
 
-    def mailman_url(self, uri=""):
+    def mailman_url(self, uri: str = "") -> str:
         """Return the URL for the mailman rest service, with the
         optional uri appended. URIs passed in should include an initial '/'.
         """
         return "{}/{}{}".format(self.mailman_address, MM_API_VERS, uri)
 
-    def usercount(self):
+    def usercount(self) -> tuple[int, Any]:
         response = {'status_code': 0}
         try:
             usrs = {}
@@ -97,7 +97,7 @@ class MailmanExporter:
         logging.debug("usercount: content %s" % response.content[:160])
         return response.status_code, usrs
 
-    def versions(self):
+    def versions(self) -> tuple[int, Any]:
         response = {'status_code': 0, 'request': ''}
         try:
             url = self.mailman_url("/system/versions")
@@ -110,7 +110,7 @@ class MailmanExporter:
         logging.debug("versions: content %s" % response.content[:160])
         return response.status_code, response
 
-    def domains(self):
+    def domains(self) -> tuple[int, Any]:
         response = {'status_code': 0}
         domains = {}
         try:
@@ -126,7 +126,7 @@ class MailmanExporter:
         logging.debug("domains: content %s" % response.content[:160])
         return response.status_code, domains
 
-    def lists(self):
+    def lists(self) -> tuple[int, Any]:
         response = {'status_code': 0}
         lists = {}
         try:
@@ -142,7 +142,7 @@ class MailmanExporter:
         logging.debug("lists: content %s" % response.content[:160])
         return response.status_code, lists
 
-    def queues(self):
+    def queues(self) -> tuple[int, Any]:
         response = {'status_code': 0}
         queues = {}
         try:
@@ -161,7 +161,7 @@ class MailmanExporter:
 
 class MailmanCollector(object):
 
-    def __init__(self, exporter):
+    def __init__(self, exporter: MailmanExporter):
         self.exporter = exporter
         self.lastcheck = 0
 
@@ -170,7 +170,7 @@ class MailmanCollector(object):
         self.lists_status = 0
         self.lists = []
 
-    def collect(self):
+    def collect(self) -> None:
         global PROCESSING_TIME
         proc_labels = ['method', 'up', 'queue', 'domains', 'lists', 'users']
         PROCESSING_TIME = GaugeMetricFamily('processing_time_ms', 'Time taken to collect metrics', labels=proc_labels)
@@ -257,7 +257,7 @@ class MailmanCollector(object):
         yield PROCESSING_TIME
 
 
-def index():
+def index() -> str:
     return """
 <html><head><title>Mailman3 Prometheus Exporter</title></head>
 <body>
@@ -268,7 +268,7 @@ def index():
 """
 
 
-def parse_host_port(listen):
+def parse_host_port(listen: str) -> tuple[str, int]:
     uri_info = re.split(r':', listen)
     if len(uri_info) == 0:
         hostname = 'localhost'
@@ -282,19 +282,19 @@ def parse_host_port(listen):
     else:
         logging.info("Listen address in unexpected form (got '%s')", listen)
         raise ValueError("listen address in unexpected form (got '%s')" % listen)
-    return (hostname, port)
+    return hostname, port
 
 
-def signal_handler():
+def signal_handler(_sig: int, _frame: None) -> None:
     shutdown(1)
 
 
-def shutdown(code):
+def shutdown(code: int) -> None:
     logging.info('Shutting down')
     sys.exit(code)
 
 
-def main():
+def main() -> None:
     global exporter
     signal.signal(signal.SIGTERM, signal_handler)
 
