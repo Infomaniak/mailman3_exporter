@@ -149,7 +149,7 @@ class Settings:
         logging.captureWarnings(True)
 
         self.hostname, self.port = parse_host_port(args.web_listen)
-        self.mailman_address = args.mailman_address
+        self.mailman_address = args.mailman_address.strip('/')
         self.mailman_user = args.mailman_user
         self.mailman_password = args.mailman_password
         self.cache_duration_in_seconds = args.cache_duration
