@@ -3,13 +3,14 @@ from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 import logging
 from src.api import Api
 from src.cache import Cache
+from src.settings import Settings
 
 
 class Collector(object):
 
-    def __init__(self, api: Api):
+    def __init__(self, api: Api, settings: Settings):
         self.api = api
-        self.cache = Cache(api)
+        self.cache = Cache(api, settings)
 
     def collect_domains(self, processing_time: GaugeMetricFamily) -> None:
         with metric_processing_time('domains', processing_time):
