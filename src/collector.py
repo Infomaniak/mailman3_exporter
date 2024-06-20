@@ -1,49 +1,33 @@
 from src.metric_processing_time import metric_processing_time
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 import logging
-import time
 from src.api import Api
+from src.cache import Cache
 
 
 class Collector(object):
 
     def __init__(self, api: Api):
         self.api = api
-        self.lastcheck = 0
+        self.cache = Cache(api)
 
-        self.domains_status = 0
-        self.domains = []
-        self.lists_status = 0
-        self.lists = []
-
-    def collect(self) -> None:
-        proc_labels = ['method', 'up', 'queue', 'domains', 'lists', 'users']
-        processing_time = GaugeMetricFamily('processing_time_ms', 'Time taken to collect metrics', labels=proc_labels)
-
-        slow_refresh = False
-        now = time.monotonic()
-        if now - self.lastcheck > 30:
-            logging.debug("do slow_refresh")
-            slow_refresh = True
-            self.lastcheck = now
-
+    def collect_domains(self, processing_time: GaugeMetricFamily) -> None:
         with metric_processing_time('domains', processing_time):
             mailman3_domains = GaugeMetricFamily('mailman3_domains', 'Number of configured list domains')
-            if slow_refresh:
-                self.domains_status, self.domains = self.api.domains()
-            if 200 <= self.domains_status < 220:
-                mailman3_domains.add_metric(['count'], self.domains['total_size'])
+            domains_status, domains = self.cache.domains()
+            if 200 <= domains_status < 220:
+                mailman3_domains.add_metric(['count'], domains['total_size'])
             else:
                 mailman3_domains.add_metric(['count'], 0)
             yield mailman3_domains
 
+    def collect_lists(self, processing_time: GaugeMetricFamily) -> None:
         with metric_processing_time('lists', processing_time):
             mailman3_lists = GaugeMetricFamily('mailman3_lists', 'Number of configured lists')
             no_lists = False
-            if slow_refresh:
-                self.lists_status, self.lists = self.api.lists()
-            if 200 <= self.lists_status < 220:
-                mailman3_lists.add_metric(['count'], self.lists['total_size'])
+            lists_status, lists = self.cache.lists()
+            if 200 <= lists_status < 220:
+                mailman3_lists.add_metric(['count'], lists['total_size'])
             else:
                 mailman3_lists.add_metric(['count'], 0)
                 no_lists = True
@@ -51,17 +35,18 @@ class Collector(object):
 
             mlabels = ['list']
             if not no_lists:
-                for e in self.lists['entries']:
+                for e in lists['entries']:
                     logging.debug("members: label %s" % e['fqdn_listname'])
                     mlabels.append(e['fqdn_listname'])
             mailman3_list_members = CounterMetricFamily('mailman3_list_members', 'Count members per list',
                                                         labels=mlabels)
             if not no_lists:
-                for e in self.lists['entries']:
+                for e in lists['entries']:
                     logging.debug("members metric %s value %s", e['fqdn_listname'], str(e['member_count']))
                     mailman3_list_members.add_metric([e['fqdn_listname']], value=e['member_count'])
             yield mailman3_list_members
 
+    def collect_up(self, processing_time: GaugeMetricFamily) -> None:
         with metric_processing_time('up', processing_time):
             mailman3_up = GaugeMetricFamily('mailman3_up', 'Status of mailman-core; 1 if accessible, 0 otherwise')
             status, resp = self.api.versions()
@@ -71,6 +56,7 @@ class Collector(object):
                 mailman3_up.add_metric(['up'], 0)
             yield mailman3_up
 
+    def collect_users(self, processing_time: GaugeMetricFamily) -> None:
         with metric_processing_time('users', processing_time):
             mailman3_users = CounterMetricFamily('mailman3_users', 'Number of list users recorded in mailman-core')
             status, resp = self.api.usercount()
@@ -80,6 +66,7 @@ class Collector(object):
                 mailman3_users.add_metric(['count'], 0)
             yield mailman3_users
 
+    def collect_queue(self, processing_time: GaugeMetricFamily) -> None:
         with metric_processing_time('queue', processing_time):
             qlabels = ['queue',
                        "archive", "bad", "bounces", "command",
@@ -99,4 +86,17 @@ class Collector(object):
                 mailman3_queue_status.add_metric(['status'], value=status)
             yield mailman3_queue
 
+    def proc_labels(self):
+        return ['method', 'up', 'queue', 'domains', 'lists', 'users']
+
+    def collect(self) -> None:
+        processing_time = GaugeMetricFamily('processing_time_ms', 'Time taken to collect metrics', labels=self.proc_labels())
+
+        self.cache.refresh_time()
+
+        yield from self.collect_domains(processing_time)
+        yield from self.collect_lists(processing_time)
+        yield from self.collect_up(processing_time)
+        yield from self.collect_users(processing_time)
+        yield from self.collect_queue(processing_time)
         yield processing_time
