@@ -7,6 +7,7 @@ WORKDIR /home/mailman3_exporter
 ENV PYTHONUNBUFFERED=1
 
 COPY  ["./mailman3_exporter", "./mailman_exporter.py", "./requirements.txt", "./"]
+COPY ./src ./src
 
 RUN apk add --update --no-cache python3 py-pip \
     && ln -sf python3 /usr/bin/python \
