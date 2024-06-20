@@ -7,19 +7,20 @@
 
 import requests
 import argparse
-import json
 import logging
 import re
 import sys
 import signal
 import time
-import pprint
-from prometheus_client import start_http_server, generate_latest, Gauge, CollectorRegistry
+from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
+
 exporter = None
-MM_API_VERS="3.1"
+MM_API_VERS = "3.1"
 
 PROCESSING_TIME = None
+
+
 class metric_processing_time:
     def __init__(self, name):
         self.start = None
@@ -33,6 +34,7 @@ class metric_processing_time:
         logging.debug('Processing %s took %s miliseconds' % (self.name, elapsed))
         PROCESSING_TIME.add_metric([self.name], elapsed)
 
+
 class MailmanExporter:
 
     def __init__(self):
@@ -43,19 +45,24 @@ class MailmanExporter:
 
     def args(self):
         parser = argparse.ArgumentParser(description='Mailman3 Prometheus metrics exporter')
-        parser.add_argument('--log-level', default='INFO', choices=['debug', 'info', 'warning', 'error', 'critical'], help='Detail level to log. (default: info)')
-        parser.add_argument('-l', '--web.listen', dest='web_listen', type=str, default="localhost:9934", help='HTTPServer metrics listen address')
+        parser.add_argument('--log-level', default='INFO', choices=['debug', 'info', 'warning', 'error', 'critical'],
+                            help='Detail level to log. (default: info)')
+        parser.add_argument('-l', '--web.listen', dest='web_listen', type=str, default="localhost:9934",
+                            help='HTTPServer metrics listen address')
 
-        parser.add_argument('-m', '--mailman.address', dest='mailman_address', type=str, default="http://localhost:8870", help='Mailman3 Core REST API address')
-        parser.add_argument('-u', '--mailman.user', dest='mailman_user', type=str, required=True, help='Mailman3 Core REST API username')
-        parser.add_argument('-p', '--mailman.password', dest='mailman_password', type=str, required=True, help='Mailman3 Core REST API password')
+        parser.add_argument('-m', '--mailman.address', dest='mailman_address', type=str,
+                            default="http://localhost:8870", help='Mailman3 Core REST API address')
+        parser.add_argument('-u', '--mailman.user', dest='mailman_user', type=str, required=True,
+                            help='Mailman3 Core REST API username')
+        parser.add_argument('-p', '--mailman.password', dest='mailman_password', type=str, required=True,
+                            help='Mailman3 Core REST API password')
         args = parser.parse_args()
 
         log_format = '[%(asctime)s] %(name)s.%(levelname)s %(threadName)s %(message)s'
         log_handler = logging.StreamHandler()
         log_handler.setFormatter(logging.Formatter(log_format))
         log_level = logging.os.environ.get('LOG_LEVEL', 'INFO')
-        log_level = getattr(logging, args.log_level.upper(), log_level.upper() )
+        log_level = getattr(logging, args.log_level.upper(), log_level.upper())
         logging.basicConfig(handlers=[log_handler], level=log_level)
         logging.captureWarnings(True)
 
@@ -75,15 +82,15 @@ class MailmanExporter:
         return "{}/{}{}".format(self.mailman_address, MM_API_VERS, uri)
 
     def usercount(self):
-        response = { 'status_code': 0 }
+        response = {'status_code': 0}
         try:
             usrs = {}
             url = self.mailman_url("/users?count=1&page=1")
             response = requests.get(url, auth=(self.mailman_user, self.mailman_password))
             if 200 <= response.status_code < 220:
                 usrs = response.json()
-        except:
-            logging.info("usercount: exception")
+        except Exception as e:
+            logging.error(f"usercount(exception): {e}")
             return 500, {}
 
         logging.debug("usercount: url %s" % response.request.url)
@@ -91,12 +98,12 @@ class MailmanExporter:
         return response.status_code, usrs
 
     def versions(self):
-        response = { 'status_code': 0, 'request': '' }
+        response = {'status_code': 0, 'request': ''}
         try:
             url = self.mailman_url("/system/versions")
             response = requests.get(url, auth=(self.mailman_user, self.mailman_password))
-        except:
-            logging.info("versions: exception")
+        except Exception as e:
+            logging.error(f"versions(exception): {e}")
             return 500, {}
 
         logging.debug("versions: url %s" % response.request.url)
@@ -104,15 +111,15 @@ class MailmanExporter:
         return response.status_code, response
 
     def domains(self):
-        response = { 'status_code': 0 }
+        response = {'status_code': 0}
         domains = {}
         try:
             url = self.mailman_url("/domains")
             response = requests.get(url, auth=(self.mailman_user, self.mailman_password))
             if 200 <= response.status_code < 220:
                 domains = response.json()
-        except:
-            logging.info("domains: exception")
+        except Exception as e:
+            logging.error(f"domains(exception): {e}")
             return 500, {}
 
         logging.debug("domains: url %s" % response.request.url)
@@ -120,15 +127,15 @@ class MailmanExporter:
         return response.status_code, domains
 
     def lists(self):
-        response = { 'status_code': 0 }
+        response = {'status_code': 0}
         lists = {}
         try:
             url = self.mailman_url("/lists")
             response = requests.get(url, auth=(self.mailman_user, self.mailman_password))
             if 200 <= response.status_code < 220:
                 lists = response.json()
-        except:
-            logging.info("lists: exception")
+        except Exception as e:
+            logging.error(f"lists(exception): {e}")
             return 500, {}
 
         logging.debug("lists: url %s" % response.request.url)
@@ -136,15 +143,15 @@ class MailmanExporter:
         return response.status_code, lists
 
     def queues(self):
-        response = { 'status_code': 0 }
+        response = {'status_code': 0}
         queues = {}
         try:
             url = self.mailman_url("/queues")
             response = requests.get(url, auth=(self.mailman_user, self.mailman_password))
             if 200 <= response.status_code < 220:
                 queues = response.json()
-        except:
-            logging.info("queues: exception")
+        except Exception as e:
+            logging.error(f"queues(exception): {e}")
             return 500, {}
 
         logging.debug("queues: url %s" % response.request.url)
@@ -165,11 +172,11 @@ class MailmanCollector(object):
 
     def collect(self):
         global PROCESSING_TIME
-        proc_labels = [ 'method', 'up', 'queue', 'domains', 'lists', 'users' ]
+        proc_labels = ['method', 'up', 'queue', 'domains', 'lists', 'users']
         PROCESSING_TIME = GaugeMetricFamily('processing_time_ms', 'Time taken to collect metrics', labels=proc_labels)
 
         slow_refresh = False
-        now = time.monotonic() 
+        now = time.monotonic()
         if now - self.lastcheck > 30:
             logging.debug("do slow_refresh")
             slow_refresh = True
@@ -197,12 +204,13 @@ class MailmanCollector(object):
                 no_lists = True
             yield mailman3_lists
 
-            mlabels = [ 'list' ]
+            mlabels = ['list']
             if not no_lists:
                 for e in self.lists['entries']:
                     logging.debug("members: label %s" % e['fqdn_listname'])
                     mlabels.append(e['fqdn_listname'])
-            mailman3_list_members = CounterMetricFamily('mailman3_list_members', 'Count members per list', labels=mlabels)
+            mailman3_list_members = CounterMetricFamily('mailman3_list_members', 'Count members per list',
+                                                        labels=mlabels)
             if not no_lists:
                 for e in self.lists['entries']:
                     logging.debug("members metric %s value %s", e['fqdn_listname'], str(e['member_count']))
@@ -228,12 +236,13 @@ class MailmanCollector(object):
             yield mailman3_users
 
         with metric_processing_time('queue'):
-            qlabels = [ 'queue',
-                "archive", "bad", "bounces", "command",
-                "digest", "in", "nntp", "out", "pipeline",
-                "retry", "shunt", "virgin"
-            ]
-            mailman3_queue = GaugeMetricFamily('mailman3_queues', 'Queue length for mailman-core internal queues', labels=qlabels)
+            qlabels = ['queue',
+                       "archive", "bad", "bounces", "command",
+                       "digest", "in", "nntp", "out", "pipeline",
+                       "retry", "shunt", "virgin"
+                       ]
+            mailman3_queue = GaugeMetricFamily('mailman3_queues', 'Queue length for mailman-core internal queues',
+                                               labels=qlabels)
             mailman3_queue_status = GaugeMetricFamily('mailman3_queues_status', 'HTTP code for queue status request')
             status, resp = self.exporter.queues()
             if 200 <= status < 220:
@@ -258,6 +267,7 @@ def index():
 </body>
 """
 
+
 def parse_host_port(listen):
     uri_info = re.split(r':', listen)
     if len(uri_info) == 0:
@@ -274,12 +284,15 @@ def parse_host_port(listen):
         raise ValueError("listen address in unexpected form (got '%s')" % listen)
     return (hostname, port)
 
+
 def signal_handler():
     shutdown(1)
+
 
 def shutdown(code):
     logging.info('Shutting down')
     sys.exit(code)
+
 
 def main():
     global exporter
@@ -303,4 +316,3 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         sys.exit(0)
-
