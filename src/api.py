@@ -1,7 +1,9 @@
-import requests
+from  requests import get, Response
 import logging
 from typing import Any
 from src.settings import Settings
+
+DEFAULT_RESPONSE = {'status_code': 0}
 
 
 class Api:
@@ -13,79 +15,31 @@ class Api:
     def mailman_url(self, uri: str = "") -> str:
         return f"{self.settings.mailman_address}/{self.settings.mailman_api_version}{uri}"
 
-    def usercount(self) -> tuple[int, Any]:
-        response = {'status_code': 0}
+    def make_request(self, name: str, endpoint: str) -> tuple[int, Any]:
+        url = self.mailman_url(endpoint)
         try:
-            usrs = {}
-            url = self.mailman_url("/users?count=1&page=1")
-            response = requests.get(url, auth=(self.settings.mailman_user, self.settings.mailman_password))
+            response = get(url, auth=(self.settings.mailman_user, self.settings.mailman_password))
             if 200 <= response.status_code < 220:
-                usrs = response.json()
+                return response.status_code, response.json()
+            else:
+                logging.debug(f"{name}: url {url}")
+                logging.debug(f"{name}: content {response.content[:160]}")
+                return response.status_code, {}
         except Exception as e:
-            logging.error(f"usercount(exception): {e}")
+            logging.error(f"{name}(exception): {e}")
             return 500, {}
 
-        logging.debug("usercount: url %s" % response.request.url)
-        logging.debug("usercount: content %s" % response.content[:160])
-        return response.status_code, usrs
+    def usercount(self) -> tuple[int, Any]:
+        return self.make_request('usercount', '/users?count=1&page=1')
 
     def versions(self) -> tuple[int, Any]:
-        response = {'status_code': 0, 'request': ''}
-        try:
-            url = self.mailman_url("/system/versions")
-            response = requests.get(url, auth=(self.settings.mailman_user, self.settings.mailman_password))
-        except Exception as e:
-            logging.error(f"versions(exception): {e}")
-            return 500, {}
-
-        logging.debug("versions: url %s" % response.request.url)
-        logging.debug("versions: content %s" % response.content[:160])
-        return response.status_code, response
+        return self.make_request('versions', '/system/versions')
 
     def domains(self) -> tuple[int, Any]:
-        response = {'status_code': 0}
-        domains = {}
-        try:
-            url = self.mailman_url("/domains")
-            response = requests.get(url, auth=(self.settings.mailman_user, self.settings.mailman_password))
-            if 200 <= response.status_code < 220:
-                domains = response.json()
-        except Exception as e:
-            logging.error(f"domains(exception): {e}")
-            return 500, {}
-
-        logging.debug("domains: url %s" % response.request.url)
-        logging.debug("domains: content %s" % response.content[:160])
-        return response.status_code, domains
+        return self.make_request('domains', '/domains')
 
     def lists(self) -> tuple[int, Any]:
-        response = {'status_code': 0}
-        lists = {}
-        try:
-            url = self.mailman_url("/lists")
-            response = requests.get(url, auth=(self.settings.mailman_user, self.settings.mailman_password))
-            if 200 <= response.status_code < 220:
-                lists = response.json()
-        except Exception as e:
-            logging.error(f"lists(exception): {e}")
-            return 500, {}
-
-        logging.debug("lists: url %s" % response.request.url)
-        logging.debug("lists: content %s" % response.content[:160])
-        return response.status_code, lists
+        return self.make_request('lists', '/lists')
 
     def queues(self) -> tuple[int, Any]:
-        response = {'status_code': 0}
-        queues = {}
-        try:
-            url = self.mailman_url("/queues")
-            response = requests.get(url, auth=(self.settings.mailman_user, self.settings.mailman_password))
-            if 200 <= response.status_code < 220:
-                queues = response.json()
-        except Exception as e:
-            logging.error(f"queues(exception): {e}")
-            return 500, {}
-
-        logging.debug("queues: url %s" % response.request.url)
-        logging.debug("queues: content %s" % response.content[:120])
-        return response.status_code, queues
+        return self.make_request('queues', '/queues')
