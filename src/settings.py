@@ -9,6 +9,8 @@ DEFAULT_MAILMAN_API_VERSION = "3.1"
 
 DEFAULT_LOG_LEVEL = 'info'
 
+DEFAULT_LOG_CONFIG = DISABLED_TEXT
+
 DEFAULT_HOSTNAME = 'localhost'
 DEFAULT_PORT = 9934
 
@@ -41,6 +43,7 @@ def parse_host_port(web_listen: str) -> tuple[str, int]:
 
 class Settings:
     def __init__(self):
+        self.log_level = DEFAULT_LOG_LEVEL
         self.mailman_api_version = DEFAULT_MAILMAN_API_VERSION
         self.hostname = DEFAULT_HOSTNAME
         self.port = DEFAULT_PORT
@@ -51,14 +54,35 @@ class Settings:
         self.cache_duration_in_seconds = DEFAULT_CACHE_DURATION_IN_SECONDS
         self.args()
 
+    def log_config(self, prefix: str = 'config') -> None:
+        logging.info(f"{prefix}(log_level): {self.log_level}")
+        logging.info(f"{prefix}(mailman_api_version): {self.mailman_api_version}")
+        logging.info(f"{prefix}(hostname): {self.hostname}")
+        logging.info(f"{prefix}(port): {self.port}")
+        logging.info(f"{prefix}(mailman_address): {self.mailman_address}")
+        logging.info(f"{prefix}(mailman_user): *****")
+        logging.info(f"{prefix}(mailman_password): *****")
+        logging.info(f"{prefix}(enable_caching): {self.enable_caching}")
+        logging.info(f"{prefix}(cache_duration_in_seconds): {self.cache_duration_in_seconds}")
+
     def args(self) -> None:
         parser = ArgumentParser(description='Mailman3 Prometheus metrics exporter')
 
         parser.add_argument(
             '--log-level',
+            dest='log_level',
             default=DEFAULT_LOG_LEVEL,
             choices=['debug', 'info', 'warning', 'error', 'critical'],
             help=f"Detail level to log. (default: {DEFAULT_LOG_LEVEL})"
+        )
+
+        parser.add_argument(
+            '--log-config',
+            dest='log_config',
+            default=DEFAULT_LOG_CONFIG,
+            choices=[ENABLED_TEXT, DISABLED_TEXT],
+            help="Log the current configuration except for sensitive information (log level: info). "
+                 f"Can be used for debugging purposes. (default: {DEFAULT_LOG_CONFIG})"
         )
 
         parser.add_argument(
@@ -119,9 +143,9 @@ class Settings:
         log_format = '[%(asctime)s] %(name)s.%(levelname)s %(threadName)s %(message)s'
         log_handler = logging.StreamHandler()
         log_handler.setFormatter(logging.Formatter(log_format))
-        log_level = logging.os.environ.get('LOG_LEVEL', 'INFO')
-        log_level = getattr(logging, args.log_level.upper(), log_level.upper())
-        logging.basicConfig(handlers=[log_handler], level=log_level)
+        self.log_level = logging.os.environ.get('LOG_LEVEL', 'INFO')
+        self.log_level = getattr(logging, args.log_level.upper(), self.log_level.upper())
+        logging.basicConfig(handlers=[log_handler], level=self.log_level)
         logging.captureWarnings(True)
 
         self.hostname, self.port = parse_host_port(args.web_listen)
@@ -130,3 +154,5 @@ class Settings:
         self.mailman_password = args.mailman_password
         self.cache_duration_in_seconds = args.cache_duration
         self.enable_caching = args.enable_caching == ENABLED_TEXT and self.cache_duration_in_seconds >= 0
+        if args.log_config == ENABLED_TEXT:
+            self.log_config()

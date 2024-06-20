@@ -36,9 +36,9 @@ includes:
 ```
 usage: mailman_exporter.py [-h]
                            [--log-level {debug,info,warning,error,critical}]
-                           [-l WEB_LISTEN] [-m MAILMAN_ADDRESS]
-                           [-u MAILMAN_USER] [-p MAILMAN_PASSWORD]
-                           [--cache {true,false}]
+                           [--log-config {true,false}] [-l WEB_LISTEN]
+                           [-m MAILMAN_ADDRESS] [-u MAILMAN_USER]
+                           [-p MAILMAN_PASSWORD] [--cache {true,false}]
                            [--cache.duration CACHE_DURATION]
 
 Mailman3 Prometheus metrics exporter
@@ -47,10 +47,16 @@ options:
   -h, --help            show this help message and exit
   --log-level {debug,info,warning,error,critical}
                         Detail level to log. (default: info)
+  --log-config {true,false}
+                        Log the current configuration except for sensitive
+                        information (log level: info). Can be used for
+                        debugging purposes. (default: false)
   -l WEB_LISTEN, --web.listen WEB_LISTEN
-                        HTTPServer metrics listen address (default: localhost:9934)
+                        HTTPServer metrics listen address (default:
+                        localhost:9934)
   -m MAILMAN_ADDRESS, --mailman.address MAILMAN_ADDRESS
-                        Mailman3 Core REST API address (default: http://mailman-core:8001)
+                        Mailman3 Core REST API address (default:
+                        http://mailman-core:8001)
   -u MAILMAN_USER, --mailman.user MAILMAN_USER
                         Mailman3 Core REST API username (default: restadmin)
   -p MAILMAN_PASSWORD, --mailman.password MAILMAN_PASSWORD
@@ -58,6 +64,7 @@ options:
   --cache {true,false}  Enable caching (default: true)
   --cache.duration CACHE_DURATION
                         Cache duration in seconds (default: 30)
+
 ```
 
 ## Metrics
