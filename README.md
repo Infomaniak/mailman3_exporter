@@ -4,10 +4,6 @@ This prometheus exporter monitors the [mailman3](https://www.mailman.org/) maili
 Stats are collected using mailman3 core process own REST API and include status, number of lists,
 list names, number of users per list, and more.
 
-## Table of contents
-
-[[_TOC_]]
-
 ## Installing
 
 Download and run the latest executable from the [releases tab](https://github.com/rivmey/exim_exporter/releases/latest). 
