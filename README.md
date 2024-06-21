@@ -34,28 +34,53 @@ By default, the exporter serves on port `9934` at `/metrics`. The help message
 includes: 
 
 ```
-mailman\_exporter.py --mailman.user MAILMAN\_USER
-                     --mailman.password MAILMAN\_PASSWORD
-                     [-l WEB\_LISTEN]
-                     [-m MAILMAN\_ADDRESS]
-                     [--log-level {debug,info,warning,error,critical}]
-```
+usage: mailman_exporter.py [-h]
+                           [--log-level {debug,info,warning,error,critical}]
+                           [--log-config {true,false}] [-l WEB_LISTEN]
+                           [-m MAILMAN_ADDRESS] [-u MAILMAN_USER]
+                           [-p MAILMAN_PASSWORD] [--cache {true,false}]
+                           [--cache.duration CACHE_DURATION]
+                           [--metrics.domains {true,false}]
+                           [--metrics.lists {true,false}]
+                           [--metrics.up {true,false}]
+                           [--metrics.users {true,false}]
+                           [--metrics.queue {true,false}]
 
-User and password are not optional.
+Mailman3 Prometheus metrics exporter
 
-```
-Arguments:
+options:
   -h, --help            show this help message and exit
   --log-level {debug,info,warning,error,critical}
                         Detail level to log. (default: info)
-  -l WEB\_LISTEN, --web.listen WEB\_LISTEN
-                        HTTPServer metrics listen address
-  -m MAILMAN\_ADDRESS, --mailman.address MAILMAN\_ADDRESS
-                        Mailman3 Core REST API address
-  -u MAILMAN\_USER, --mailman.user MAILMAN\_USER
-                        Mailman3 Core REST API username
-  -p MAILMAN\_PASSWORD, --mailman.password MAILMAN\_PASSWORD
-                        Mailman3 Core REST API password
+  --log-config {true,false}
+                        Log the current configuration except for sensitive
+                        information (log level: info). Can be used for
+                        debugging purposes. (default: false)
+  -l WEB_LISTEN, --web.listen WEB_LISTEN
+                        HTTPServer metrics listen address (default:
+                        localhost:9934)
+  -m MAILMAN_ADDRESS, --mailman.address MAILMAN_ADDRESS
+                        Mailman3 Core REST API address (default:
+                        http://mailman-core:8001)
+  -u MAILMAN_USER, --mailman.user MAILMAN_USER
+                        Mailman3 Core REST API username (default: restadmin)
+  -p MAILMAN_PASSWORD, --mailman.password MAILMAN_PASSWORD
+                        Mailman3 Core REST API password (default: restpass)
+  --cache {true,false}  Enable caching (default: true)
+  --cache.duration CACHE_DURATION
+                        Cache duration in seconds (default: 30)
+  --metrics.domains {true,false}
+                        Enable domains metrics (default: true)
+  --metrics.lists {true,false}
+                        Enable lists metrics (default: true)
+  --metrics.up {true,false}
+                        Enable up metrics (default: true)
+  --metrics.users {true,false}
+                        Enable users metrics (default: true)
+  --metrics.queue {true,false}
+                        Enable queue metrics (default: true)
+
+
 ```
 
 ## Metrics

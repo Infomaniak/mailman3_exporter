@@ -45,7 +45,7 @@ def main() -> None:
     start_http_server(addr=settings.hostname, port=settings.port, registry=REGISTRY)
     logging.info('Server started on port %s', settings.port)
 
-    REGISTRY.register(Collector(api))
+    REGISTRY.register(Collector(api, settings))
     while True:
         time.sleep(1)
 

@@ -3,13 +3,15 @@ from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 import logging
 from src.api import Api
 from src.cache import Cache
+from src.settings import Settings
 
 
 class Collector(object):
 
-    def __init__(self, api: Api):
+    def __init__(self, api: Api, settings: Settings):
         self.api = api
-        self.cache = Cache(api)
+        self.settings = settings
+        self.cache = Cache(api, settings)
 
     def collect_domains(self, processing_time: GaugeMetricFamily) -> None:
         with metric_processing_time('domains', processing_time):
@@ -87,16 +89,29 @@ class Collector(object):
             yield mailman3_queue
 
     def proc_labels(self):
-        return ['method', 'up', 'queue', 'domains', 'lists', 'users']
+        labels = [
+            ('up', self.settings.enable_up_metrics),
+            ('queue', self.settings.enable_queue_metrics),
+            ('domains', self.settings.enable_domains_metrics),
+            ('lists', self.settings.enable_lists_metrics),
+            ('users', self.settings.enable_users_metrics),
+        ]
+        labels = filter(lambda label: label[1] is True, labels)
+        return ['method', *[label[0] for label in labels]]
 
     def collect(self) -> None:
         processing_time = GaugeMetricFamily('processing_time_ms', 'Time taken to collect metrics', labels=self.proc_labels())
 
         self.cache.refresh_time()
 
-        yield from self.collect_domains(processing_time)
-        yield from self.collect_lists(processing_time)
-        yield from self.collect_up(processing_time)
-        yield from self.collect_users(processing_time)
-        yield from self.collect_queue(processing_time)
+        if self.settings.enable_domains_metrics:
+            yield from self.collect_domains(processing_time)
+        if self.settings.enable_lists_metrics:
+            yield from self.collect_lists(processing_time)
+        if self.settings.enable_up_metrics:
+            yield from self.collect_up(processing_time)
+        if self.settings.enable_users_metrics:
+            yield from self.collect_users(processing_time)
+        if self.settings.enable_queue_metrics:
+            yield from self.collect_queue(processing_time)
         yield processing_time

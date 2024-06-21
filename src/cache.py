@@ -2,14 +2,13 @@ import time
 import logging
 from src.api import Api
 from typing import Any
-
-DEFAULT_CACHE_DURATION_IN_SECONDS = 30
+from src.settings import Settings
 
 
 class Cache:
-    def __init__(self, api: Api, cache_duration_in_seconds=DEFAULT_CACHE_DURATION_IN_SECONDS):
+    def __init__(self, api: Api, settings: Settings):
         self.api = api
-        self.cache_duration_in_seconds = cache_duration_in_seconds
+        self.settings = settings
         self.last_data_refresh_time = 0
         self.refresh_data = True
 
@@ -19,9 +18,11 @@ class Cache:
         self._lists = []
 
     def refresh_time(self):
+        if not self.settings.enable_caching:
+            return
         now = time.monotonic()
         elapsed_time = now - self.last_data_refresh_time
-        if elapsed_time > self.cache_duration_in_seconds:
+        if elapsed_time > self.settings.cache_duration_in_seconds:
             logging.debug("refresh cache data")
             self.refresh_data = True
             self.last_data_refresh_time = now
