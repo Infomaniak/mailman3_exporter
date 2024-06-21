@@ -40,6 +40,11 @@ usage: mailman_exporter.py [-h]
                            [-m MAILMAN_ADDRESS] [-u MAILMAN_USER]
                            [-p MAILMAN_PASSWORD] [--cache {true,false}]
                            [--cache.duration CACHE_DURATION]
+                           [--metrics.domains {true,false}]
+                           [--metrics.lists {true,false}]
+                           [--metrics.up {true,false}]
+                           [--metrics.users {true,false}]
+                           [--metrics.queue {true,false}]
 
 Mailman3 Prometheus metrics exporter
 
@@ -64,6 +69,17 @@ options:
   --cache {true,false}  Enable caching (default: true)
   --cache.duration CACHE_DURATION
                         Cache duration in seconds (default: 30)
+  --metrics.domains {true,false}
+                        Enable domains metrics (default: true)
+  --metrics.lists {true,false}
+                        Enable lists metrics (default: true)
+  --metrics.up {true,false}
+                        Enable up metrics (default: true)
+  --metrics.users {true,false}
+                        Enable users metrics (default: true)
+  --metrics.queue {true,false}
+                        Enable queue metrics (default: true)
+
 
 ```
 
