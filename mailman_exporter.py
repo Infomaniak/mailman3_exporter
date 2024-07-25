@@ -8,10 +8,11 @@ import logging
 import sys
 import signal
 import time
-from prometheus_client import start_http_server
-from prometheus_client.core import REGISTRY
-from src.settings import Settings
-from src.collector import Collector
+from prometheus_client import start_http_server, CollectorRegistry, ProcessCollector
+from src.platform_collector import PlatformCollector
+from src.gc_collector import GCCollector
+from src.config import Config
+from src.mailman3_collector import Mailman3Collector
 from src.api import Api
 
 
@@ -38,14 +39,20 @@ def shutdown(code: int) -> None:
 def main() -> None:
     signal.signal(signal.SIGTERM, signal_handler)
 
-    settings = Settings()
-    api = Api(settings)
+    config = Config()
+    api = Api(config)
 
     logging.info('Starting server...')
-    start_http_server(addr=settings.hostname, port=settings.port, registry=REGISTRY)
-    logging.info('Server started on port %s', settings.port)
+    registry = CollectorRegistry()
 
-    REGISTRY.register(Collector(api, settings))
+    GCCollector(namespace=config.namespace, registry=registry)
+    PlatformCollector(namespace=config.namespace, registry=registry)
+    ProcessCollector(namespace=config.namespace, registry=registry)
+    Mailman3Collector(api=api, config=config, registry=registry)
+
+    start_http_server(addr=config.hostname, port=config.port, registry=registry)
+    logging.info(f"Server started on port {config.port}")
+
     while True:
         time.sleep(1)
 

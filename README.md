@@ -37,7 +37,8 @@ usage: mailman_exporter.py [-h]
                            [--log-level {debug,info,warning,error,critical}]
                            [--log-config {true,false}] [-l WEB_LISTEN]
                            [-m MAILMAN_ADDRESS] [-u MAILMAN_USER]
-                           [-p MAILMAN_PASSWORD] [--cache {true,false}]
+                           [-p MAILMAN_PASSWORD] [--namespace NAMESPACE]
+                           [--cache {true,false}]
                            [--cache.duration CACHE_DURATION]
                            [--metrics.domains {true,false}]
                            [--metrics.lists {true,false}]
@@ -65,6 +66,8 @@ options:
                         Mailman3 Core REST API username (default: restadmin)
   -p MAILMAN_PASSWORD, --mailman.password MAILMAN_PASSWORD
                         Mailman3 Core REST API password (default: restpass)
+  --namespace NAMESPACE
+                        Metrics namespace (default: )
   --cache {true,false}  Enable caching (default: true)
   --cache.duration CACHE_DURATION
                         Cache duration in seconds (default: 30)

@@ -20,6 +20,8 @@ DEFAULT_MAILMAN_ADDRESS = 'http://mailman-core:8001'
 DEFAULT_MAILMAN_USERNAME = 'restadmin'
 DEFAULT_MAILMAN_PASSWORD = 'restpass'
 
+DEFAULT_NAMESPACE = ''
+
 DEFAULT_CACHE_ENABLED = ENABLED_TEXT
 DEFAULT_CACHE_DURATION_IN_SECONDS = 30
 
@@ -48,7 +50,7 @@ def parse_host_port(web_listen: str) -> tuple[str, int]:
     return hostname, port
 
 
-class Settings:
+class Config:
     def __init__(self):
         self.log_level = DEFAULT_LOG_LEVEL
         self.mailman_api_version = DEFAULT_MAILMAN_API_VERSION
@@ -57,6 +59,7 @@ class Settings:
         self.mailman_address = DEFAULT_MAILMAN_ADDRESS
         self.mailman_user = DEFAULT_MAILMAN_USERNAME
         self.mailman_password = DEFAULT_MAILMAN_PASSWORD
+        self.namespace = DEFAULT_NAMESPACE
         self.enable_caching = DEFAULT_CACHE_ENABLED
         self.cache_duration_in_seconds = DEFAULT_CACHE_DURATION_IN_SECONDS
         self.enable_domains_metrics = DEFAULT_ENABLE_DOMAINS_METRICS
@@ -74,6 +77,7 @@ class Settings:
         logging.info(f"{prefix}(mailman_address): {self.mailman_address}")
         logging.info(f"{prefix}(mailman_user): *****")
         logging.info(f"{prefix}(mailman_password): *****")
+        logging.info(f"{prefix}(namespace): {self.namespace}")
         logging.info(f"{prefix}(enable_caching): {str(self.enable_caching).lower()}")
         logging.info(f"{prefix}(cache_duration_in_seconds): {self.cache_duration_in_seconds}")
         logging.info(f"{prefix}(enable_domains_metrics): {str(self.enable_domains_metrics).lower()}")
@@ -81,6 +85,10 @@ class Settings:
         logging.info(f"{prefix}(enable_up_metrics): {str(self.enable_up_metrics).lower()}")
         logging.info(f"{prefix}(enable_users_metrics): {str(self.enable_users_metrics).lower()}")
         logging.info(f"{prefix}(enable_queue_metrics): {str(self.enable_queue_metrics).lower()}")
+
+    @property
+    def prefix(self) -> str:
+        return f"{self.namespace}_" if self.namespace else ""
 
     def args(self) -> None:
         parser = ArgumentParser(description='Mailman3 Prometheus metrics exporter')
@@ -136,6 +144,14 @@ class Settings:
             type=str,
             default=DEFAULT_MAILMAN_PASSWORD,
             help=f"Mailman3 Core REST API password (default: {DEFAULT_MAILMAN_PASSWORD})"
+        )
+
+        parser.add_argument(
+            '--namespace',
+            dest='namespace',
+            type=str,
+            default=DEFAULT_NAMESPACE,
+            help=f"Metrics namespace (default: {DEFAULT_NAMESPACE})"
         )
 
         parser.add_argument(
@@ -214,6 +230,7 @@ class Settings:
         self.mailman_address = args.mailman_address.strip('/')
         self.mailman_user = args.mailman_user
         self.mailman_password = args.mailman_password
+        self.namespace = args.namespace.strip()
         self.cache_duration_in_seconds = args.cache_duration
         self.enable_caching = args.enable_caching == ENABLED_TEXT and self.cache_duration_in_seconds >= 0
         self.enable_domains_metrics = args.enable_domains_metrics == ENABLED_TEXT
