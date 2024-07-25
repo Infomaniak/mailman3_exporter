@@ -34,6 +34,8 @@ DEFAULT_ENABLE_UP_METRICS = ENABLED_TEXT
 DEFAULT_ENABLE_USERS_METRICS = ENABLED_TEXT
 DEFAULT_ENABLE_QUEUE_METRICS = ENABLED_TEXT
 
+DEFAULT_WAIT_FOR_MAILMAN_SLEEP_INTERVAL_IN_SECONDS = 1
+
 
 def parse_host_port(web_listen: str) -> tuple[str, int]:
     uri_info = re.split(r':', web_listen)

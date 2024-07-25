@@ -11,9 +11,10 @@ import time
 from prometheus_client import start_http_server, CollectorRegistry, ProcessCollector
 from src.platform_collector import PlatformCollector
 from src.gc_collector import GCCollector
-from src.config import Config
+from src.config import Config, DEFAULT_WAIT_FOR_MAILMAN_SLEEP_INTERVAL_IN_SECONDS
 from src.mailman3_collector import Mailman3Collector
 from src.api import Api
+from time import sleep
 
 
 def index() -> str:
@@ -36,11 +37,23 @@ def shutdown(code: int) -> None:
     sys.exit(code)
 
 
+def wait_for_mailman(api: Api, interval_in_seconds: float = DEFAULT_WAIT_FOR_MAILMAN_SLEEP_INTERVAL_IN_SECONDS) -> None:
+    while True:
+        status, resp = api.versions()
+        if 200 <= status < 220:
+            return
+        else:
+            logging.info(f"Mailman connection failed, sleeping... (status: {status})")
+            sleep(interval_in_seconds)
+
+
 def main() -> None:
     signal.signal(signal.SIGTERM, signal_handler)
 
     config = Config()
     api = Api(config)
+
+    wait_for_mailman(api)
 
     logging.info('Starting server...')
     registry = CollectorRegistry()
