@@ -17,17 +17,6 @@ from src.api import Api
 from time import sleep
 
 
-def index() -> str:
-    return """
-<html><head><title>Mailman3 Prometheus Exporter</title></head>
-<body>
-<h1>Mailman3 Prometheus Exporter</h1>
-<p>Prometheus metrics bridge for the Mailman3 REST API</p>
-<p>Visit the metrics page at: <a href="/metrics">/metrics</a>.</p>
-</body>
-"""
-
-
 def signal_handler(_sig: int, _frame: None) -> None:
     shutdown(1)
 
