@@ -6,8 +6,7 @@ list names, number of users per list, and more.
 
 ## Installing
 
-Download and run the latest executable from the [releases tab](https://github.com/rivmey/exim_exporter/releases/latest). 
-Alternatively, `git clone` this repository.  Create a virtual environment, e.g.:
+`git clone` this repository.  Create a virtual environment, e.g.:
 
 ```shell script
 python3 -m venv .
@@ -16,13 +15,13 @@ python3 -m venv .
 and then install the required packages:
 
 ```shell script
-bin/pip3 install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 The program can then be run, e.g. by:
 
 ```shell script
-bin/python3 ./mailman3_exporter.py -p PASS -u USER
+python3 ./mailman3_exporter.py -p PASS -u USER
 ```
 
 If python complains packages are missing, check that you are invoking the
