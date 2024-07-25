@@ -40,6 +40,9 @@ usage: mailman_exporter.py [-h]
                            [-p MAILMAN_PASSWORD] [--namespace NAMESPACE]
                            [--cache {true,false}]
                            [--cache.duration CACHE_DURATION]
+                           [--metrics.gc {true,false}]
+                           [--metrics.platform {true,false}]
+                           [--metrics.process {true,false}]
                            [--metrics.domains {true,false}]
                            [--metrics.lists {true,false}]
                            [--metrics.up {true,false}]
@@ -71,6 +74,12 @@ options:
   --cache {true,false}  Enable caching (default: true)
   --cache.duration CACHE_DURATION
                         Cache duration in seconds (default: 30)
+  --metrics.gc {true,false}
+                        Enable garbage collection metrics (default: true)
+  --metrics.platform {true,false}
+                        Enable platform metrics (default: true)
+  --metrics.process {true,false}
+                        Enable process metrics (default: true)
   --metrics.domains {true,false}
                         Enable domains metrics (default: true)
   --metrics.lists {true,false}
@@ -81,8 +90,6 @@ options:
                         Enable users metrics (default: true)
   --metrics.queue {true,false}
                         Enable queue metrics (default: true)
-
-
 ```
 
 ## Metrics
