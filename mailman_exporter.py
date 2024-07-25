@@ -45,9 +45,12 @@ def main() -> None:
     logging.info('Starting server...')
     registry = CollectorRegistry()
 
-    GCCollector(namespace=config.namespace, registry=registry)
-    PlatformCollector(namespace=config.namespace, registry=registry)
-    ProcessCollector(namespace=config.namespace, registry=registry)
+    if config.enable_gc_metrics:
+        GCCollector(namespace=config.namespace, registry=registry)
+    if config.enable_platform_metrics:
+        PlatformCollector(namespace=config.namespace, registry=registry)
+    if config.enable_process_metrics:
+        ProcessCollector(namespace=config.namespace, registry=registry)
     Mailman3Collector(api=api, config=config, registry=registry)
 
     start_http_server(addr=config.hostname, port=config.port, registry=registry)

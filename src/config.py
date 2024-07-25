@@ -25,6 +25,9 @@ DEFAULT_NAMESPACE = ''
 DEFAULT_CACHE_ENABLED = ENABLED_TEXT
 DEFAULT_CACHE_DURATION_IN_SECONDS = 30
 
+DEFAULT_ENABLE_GC_METRICS = ENABLED_TEXT
+DEFAULT_ENABLE_PLATFORM_METRICS = ENABLED_TEXT
+DEFAULT_ENABLE_PROCESS_METRICS = ENABLED_TEXT
 DEFAULT_ENABLE_DOMAINS_METRICS = ENABLED_TEXT
 DEFAULT_ENABLE_LISTS_METRICS = ENABLED_TEXT
 DEFAULT_ENABLE_UP_METRICS = ENABLED_TEXT
@@ -62,6 +65,9 @@ class Config:
         self.namespace = DEFAULT_NAMESPACE
         self.enable_caching = DEFAULT_CACHE_ENABLED
         self.cache_duration_in_seconds = DEFAULT_CACHE_DURATION_IN_SECONDS
+        self.enable_gc_metrics = DEFAULT_ENABLE_GC_METRICS
+        self.enable_platform_metrics = DEFAULT_ENABLE_PLATFORM_METRICS
+        self.enable_process_metrics = DEFAULT_ENABLE_PROCESS_METRICS
         self.enable_domains_metrics = DEFAULT_ENABLE_DOMAINS_METRICS
         self.enable_lists_metrics = DEFAULT_ENABLE_LISTS_METRICS
         self.enable_up_metrics = DEFAULT_ENABLE_UP_METRICS
@@ -70,21 +76,31 @@ class Config:
         self.args()
 
     def log_config(self, prefix: str = 'config') -> None:
-        logging.info(f"{prefix}(log_level): {self.log_level}")
-        logging.info(f"{prefix}(mailman_api_version): {self.mailman_api_version}")
-        logging.info(f"{prefix}(hostname): {self.hostname}")
-        logging.info(f"{prefix}(port): {self.port}")
-        logging.info(f"{prefix}(mailman_address): {self.mailman_address}")
-        logging.info(f"{prefix}(mailman_user): *****")
-        logging.info(f"{prefix}(mailman_password): *****")
-        logging.info(f"{prefix}(namespace): {self.namespace}")
-        logging.info(f"{prefix}(enable_caching): {str(self.enable_caching).lower()}")
-        logging.info(f"{prefix}(cache_duration_in_seconds): {self.cache_duration_in_seconds}")
-        logging.info(f"{prefix}(enable_domains_metrics): {str(self.enable_domains_metrics).lower()}")
-        logging.info(f"{prefix}(enable_lists_metrics): {str(self.enable_lists_metrics).lower()}")
-        logging.info(f"{prefix}(enable_up_metrics): {str(self.enable_up_metrics).lower()}")
-        logging.info(f"{prefix}(enable_users_metrics): {str(self.enable_users_metrics).lower()}")
-        logging.info(f"{prefix}(enable_queue_metrics): {str(self.enable_queue_metrics).lower()}")
+        no_format = lambda value: value
+        obfusacte = lambda value: '*****'
+        bool_to_string = lambda value: str(value).lower()
+        entries = {
+            'log_level': (self.log_level, no_format),
+            'mailman_api_version': (self.mailman_api_version, no_format),
+            'hostname': (self.hostname, no_format),
+            'port': (self.port, no_format),
+            'mailman_address': (self.mailman_address, no_format),
+            'mailman_user': (self.mailman_user, obfusacte),
+            'mailman_password': (self.mailman_password, obfusacte),
+            'namespace': (self.namespace, no_format),
+            'enable_caching': (self.enable_caching, bool_to_string),
+            'cache_duration_in_seconds': (self.cache_duration_in_seconds, no_format),
+            'enable_gc_metrics': (self.enable_gc_metrics, bool_to_string),
+            'enable_platform_metrics': (self.enable_platform_metrics, bool_to_string),
+            'enable_process_metrics': (self.enable_process_metrics, bool_to_string),
+            'enable_domains_metrics': (self.enable_domains_metrics, bool_to_string),
+            'enable_lists_metrics': (self.enable_lists_metrics, bool_to_string),
+            'enable_up_metrics': (self.enable_up_metrics, bool_to_string),
+            'enable_users_metrics': (self.enable_users_metrics, bool_to_string),
+            'enable_queue_metrics': (self.enable_queue_metrics, bool_to_string),
+        }
+        for key in entries.keys():
+            logging.info(f"{prefix}({key}): {entries[key][1](entries[key][0])}")
 
     @property
     def prefix(self) -> str:
@@ -172,6 +188,33 @@ class Config:
         )
 
         parser.add_argument(
+            '--metrics.gc',
+            dest='enable_gc_metrics',
+            type=str,
+            default=DEFAULT_ENABLE_GC_METRICS,
+            choices=BOOLEAN_CHOICES,
+            help=f"Enable garbage collection metrics (default: {DEFAULT_ENABLE_GC_METRICS})"
+        )
+
+        parser.add_argument(
+            '--metrics.platform',
+            dest='enable_platform_metrics',
+            type=str,
+            default=DEFAULT_ENABLE_PLATFORM_METRICS,
+            choices=BOOLEAN_CHOICES,
+            help=f"Enable platform metrics (default: {DEFAULT_ENABLE_PLATFORM_METRICS})"
+        )
+
+        parser.add_argument(
+            '--metrics.process',
+            dest='enable_process_metrics',
+            type=str,
+            default=DEFAULT_ENABLE_PROCESS_METRICS,
+            choices=BOOLEAN_CHOICES,
+            help=f"Enable process metrics (default: {DEFAULT_ENABLE_PROCESS_METRICS})"
+        )
+
+        parser.add_argument(
             '--metrics.domains',
             dest='enable_domains_metrics',
             type=str,
@@ -233,6 +276,9 @@ class Config:
         self.namespace = args.namespace.strip()
         self.cache_duration_in_seconds = args.cache_duration
         self.enable_caching = args.enable_caching == ENABLED_TEXT and self.cache_duration_in_seconds >= 0
+        self.enable_gc_metrics = args.enable_gc_metrics == ENABLED_TEXT
+        self.enable_platform_metrics = args.enable_platform_metrics == ENABLED_TEXT
+        self.enable_process_metrics = args.enable_process_metrics == ENABLED_TEXT
         self.enable_domains_metrics = args.enable_domains_metrics == ENABLED_TEXT
         self.enable_lists_metrics = args.enable_lists_metrics == ENABLED_TEXT
         self.enable_up_metrics = args.enable_up_metrics == ENABLED_TEXT
