@@ -69,7 +69,7 @@ class Config:
             default_value='http://mailman-core:8001',
             env_var_name='ME_MAILMAN_ADDRESS',
             help_text=f"Mailman3 Core REST API address (default: http://mailman-core:8001)",
-            name_and_flags=['--mailman.address']
+            name_and_flags=['-m', '--mailman.address']
         )
         mailman_user_option = StringOption(
             parser=parser,
@@ -117,7 +117,7 @@ class Config:
             default_value=True,
             env_var_name='ME_ENABLE_GC_METRICS',
             help_text=f"Enable garbage collection metrics (default: true)",
-            name_and_flags=['--enable-gc']
+            name_and_flags=['--enable.gc']
         )
         enable_platform_metrics_option = BooleanOption(
             parser=parser,
