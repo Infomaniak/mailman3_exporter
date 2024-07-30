@@ -9,10 +9,10 @@ import sys
 import signal
 import time
 from prometheus_client import start_http_server, CollectorRegistry, ProcessCollector
-from src.platform_collector import PlatformCollector
-from src.gc_collector import GCCollector
+from src.collectors.platform_collector import PlatformCollector
+from src.collectors.gc_collector import GCCollector
 from src.config import Config, DEFAULT_WAIT_FOR_MAILMAN_SLEEP_INTERVAL_IN_SECONDS
-from src.mailman3_collector import Mailman3Collector
+from src.collectors.mailman3_collector import Mailman3Collector
 from src.api import Api
 from time import sleep
 
