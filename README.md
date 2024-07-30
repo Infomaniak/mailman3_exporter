@@ -6,8 +6,7 @@ list names, number of users per list, and more.
 
 ## Installing
 
-Download and run the latest executable from the [releases tab](https://github.com/rivmey/exim_exporter/releases/latest). 
-Alternatively, `git clone` this repository.  Create a virtual environment, e.g.:
+`git clone` this repository.  Create a virtual environment, e.g.:
 
 ```shell script
 python3 -m venv .
@@ -16,13 +15,13 @@ python3 -m venv .
 and then install the required packages:
 
 ```shell script
-bin/pip3 install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 The program can then be run, e.g. by:
 
 ```shell script
-bin/python3 ./mailman3_exporter.py -p PASS -u USER
+python3 ./mailman3_exporter.py -p PASS -u USER
 ```
 
 If python complains packages are missing, check that you are invoking the
@@ -36,10 +35,14 @@ includes:
 ```
 usage: mailman_exporter.py [-h]
                            [--log-level {debug,info,warning,error,critical}]
-                           [--log-config {true,false}] [-l WEB_LISTEN]
-                           [-m MAILMAN_ADDRESS] [-u MAILMAN_USER]
-                           [-p MAILMAN_PASSWORD] [--cache {true,false}]
+                           [--log-config {true,false}]
+                           [--web.listen WEB_LISTEN] [-m MAILMAN_ADDRESS]
+                           [-u MAILMAN_USER] [-p MAILMAN_PASSWORD]
+                           [--namespace NAMESPACE] [--cache {true,false}]
                            [--cache.duration CACHE_DURATION]
+                           [--enable.gc {true,false}]
+                           [--metrics.platform {true,false}]
+                           [--metrics.process {true,false}]
                            [--metrics.domains {true,false}]
                            [--metrics.lists {true,false}]
                            [--metrics.up {true,false}]
@@ -56,7 +59,7 @@ options:
                         Log the current configuration except for sensitive
                         information (log level: info). Can be used for
                         debugging purposes. (default: false)
-  -l WEB_LISTEN, --web.listen WEB_LISTEN
+  --web.listen WEB_LISTEN
                         HTTPServer metrics listen address (default:
                         localhost:9934)
   -m MAILMAN_ADDRESS, --mailman.address MAILMAN_ADDRESS
@@ -66,9 +69,17 @@ options:
                         Mailman3 Core REST API username (default: restadmin)
   -p MAILMAN_PASSWORD, --mailman.password MAILMAN_PASSWORD
                         Mailman3 Core REST API password (default: restpass)
+  --namespace NAMESPACE
+                        Metrics namespace (default: <empty>)
   --cache {true,false}  Enable caching (default: true)
   --cache.duration CACHE_DURATION
                         Cache duration in seconds (default: 30)
+  --enable.gc {true,false}
+                        Enable garbage collection metrics (default: true)
+  --metrics.platform {true,false}
+                        Enable platform metrics (default: true)
+  --metrics.process {true,false}
+                        Enable process metrics (default: true)
   --metrics.domains {true,false}
                         Enable domains metrics (default: true)
   --metrics.lists {true,false}
@@ -80,7 +91,28 @@ options:
   --metrics.queue {true,false}
                         Enable queue metrics (default: true)
 
+```
 
+The following environment variables can also be used:
+
+```
+ME_LOG_LEVEL
+ME_LOG_CONFIG
+ME_WEB_LISTEN
+ME_MAILMAN_ADDRESS
+ME_MAILMAN_USERNAME
+ME_MAILMAN_PASSWORD
+ME_NAMESPACE
+ME_ENABLE_CACHING
+ME_CACHE_DURATION_IN_SECONDS
+ME_ENABLE_GC_METRICS
+ME_ENABLE_PLATFORM_METRICS
+ME_ENABLE_PROCESS_METRICS
+ME_ENABLE_DOMAINS_METRICS
+ME_ENABLE_LISTS_METRICS
+ME_ENABLE_UP_METRICS
+ME_ENABLE_USERS_METRICS
+ME_ENABLE_QUEUE_METRICS
 ```
 
 ## Metrics

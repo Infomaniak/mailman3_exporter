@@ -1,24 +1,24 @@
 from  requests import get, Response
 import logging
 from typing import Any
-from src.settings import Settings
+from src.config import Config
 
 DEFAULT_RESPONSE = {'status_code': 0}
 
 
 class Api:
-    def __init__(self, settings: Settings):
-        self.settings = settings
+    def __init__(self, config: Config):
+        self.config = config
         url = self.mailman_url('/')
         logging.info(f"Querying Mailman at URL: <{url}>")
 
     def mailman_url(self, uri: str = "") -> str:
-        return f"{self.settings.mailman_address}/{self.settings.mailman_api_version}{uri}"
+        return f"{self.config.mailman_address}/{self.config.mailman_api_version}{uri}"
 
     def make_request(self, name: str, endpoint: str) -> tuple[int, Any]:
         url = self.mailman_url(endpoint)
         try:
-            response = get(url, auth=(self.settings.mailman_user, self.settings.mailman_password))
+            response = get(url, auth=(self.config.mailman_user, self.config.mailman_password))
             if 200 <= response.status_code < 220:
                 return response.status_code, response.json()
             else:
