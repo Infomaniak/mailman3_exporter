@@ -6,8 +6,7 @@ list names, number of users per list, and more.
 
 ## Installing
 
-Download and run the latest executable from the [releases tab](https://github.com/rivmey/exim_exporter/releases/latest). 
-Alternatively, `git clone` this repository.  Create a virtual environment, e.g.:
+`git clone` this repository.  Create a virtual environment, e.g.:
 
 ```shell script
 python3 -m venv .
@@ -16,13 +15,13 @@ python3 -m venv .
 and then install the required packages:
 
 ```shell script
-bin/pip3 install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 The program can then be run, e.g. by:
 
 ```shell script
-bin/python3 ./mailman3_exporter.py -p PASS -u USER
+python3 ./mailman3_exporter.py -p PASS -u USER
 ```
 
 If python complains packages are missing, check that you are invoking the
@@ -34,28 +33,86 @@ By default, the exporter serves on port `9934` at `/metrics`. The help message
 includes: 
 
 ```
-mailman\_exporter.py --mailman.user MAILMAN\_USER
-                     --mailman.password MAILMAN\_PASSWORD
-                     [-l WEB\_LISTEN]
-                     [-m MAILMAN\_ADDRESS]
-                     [--log-level {debug,info,warning,error,critical}]
-```
+usage: mailman_exporter.py [-h]
+                           [--log-level {debug,info,warning,error,critical}]
+                           [--log-config {true,false}]
+                           [--web.listen WEB_LISTEN] [-m MAILMAN_ADDRESS]
+                           [-u MAILMAN_USER] [-p MAILMAN_PASSWORD]
+                           [--namespace NAMESPACE] [--cache {true,false}]
+                           [--cache.duration CACHE_DURATION]
+                           [--enable.gc {true,false}]
+                           [--metrics.platform {true,false}]
+                           [--metrics.process {true,false}]
+                           [--metrics.domains {true,false}]
+                           [--metrics.lists {true,false}]
+                           [--metrics.up {true,false}]
+                           [--metrics.users {true,false}]
+                           [--metrics.queue {true,false}]
 
-User and password are not optional.
+Mailman3 Prometheus metrics exporter
 
-```
-Arguments:
+options:
   -h, --help            show this help message and exit
   --log-level {debug,info,warning,error,critical}
                         Detail level to log. (default: info)
-  -l WEB\_LISTEN, --web.listen WEB\_LISTEN
-                        HTTPServer metrics listen address
-  -m MAILMAN\_ADDRESS, --mailman.address MAILMAN\_ADDRESS
-                        Mailman3 Core REST API address
-  -u MAILMAN\_USER, --mailman.user MAILMAN\_USER
-                        Mailman3 Core REST API username
-  -p MAILMAN\_PASSWORD, --mailman.password MAILMAN\_PASSWORD
-                        Mailman3 Core REST API password
+  --log-config {true,false}
+                        Log the current configuration except for sensitive
+                        information (log level: info). Can be used for
+                        debugging purposes. (default: false)
+  --web.listen WEB_LISTEN
+                        HTTPServer metrics listen address (default:
+                        localhost:9934)
+  -m MAILMAN_ADDRESS, --mailman.address MAILMAN_ADDRESS
+                        Mailman3 Core REST API address (default:
+                        http://mailman-core:8001)
+  -u MAILMAN_USER, --mailman.user MAILMAN_USER
+                        Mailman3 Core REST API username (default: restadmin)
+  -p MAILMAN_PASSWORD, --mailman.password MAILMAN_PASSWORD
+                        Mailman3 Core REST API password (default: restpass)
+  --namespace NAMESPACE
+                        Metrics namespace (default: <empty>)
+  --cache {true,false}  Enable caching (default: true)
+  --cache.duration CACHE_DURATION
+                        Cache duration in seconds (default: 30)
+  --enable.gc {true,false}
+                        Enable garbage collection metrics (default: true)
+  --metrics.platform {true,false}
+                        Enable platform metrics (default: true)
+  --metrics.process {true,false}
+                        Enable process metrics (default: true)
+  --metrics.domains {true,false}
+                        Enable domains metrics (default: true)
+  --metrics.lists {true,false}
+                        Enable lists metrics (default: true)
+  --metrics.up {true,false}
+                        Enable up metrics (default: true)
+  --metrics.users {true,false}
+                        Enable users metrics (default: true)
+  --metrics.queue {true,false}
+                        Enable queue metrics (default: true)
+
+```
+
+The following environment variables can also be used:
+
+```
+ME_LOG_LEVEL
+ME_LOG_CONFIG
+ME_WEB_LISTEN
+ME_MAILMAN_ADDRESS
+ME_MAILMAN_USERNAME
+ME_MAILMAN_PASSWORD
+ME_NAMESPACE
+ME_ENABLE_CACHING
+ME_CACHE_DURATION_IN_SECONDS
+ME_ENABLE_GC_METRICS
+ME_ENABLE_PLATFORM_METRICS
+ME_ENABLE_PROCESS_METRICS
+ME_ENABLE_DOMAINS_METRICS
+ME_ENABLE_LISTS_METRICS
+ME_ENABLE_UP_METRICS
+ME_ENABLE_USERS_METRICS
+ME_ENABLE_QUEUE_METRICS
 ```
 
 ## Metrics
@@ -105,4 +162,8 @@ Arguments:
   processing_time_ms{method="users"} 7.315147000000355
   processing_time_ms{method="queue"} 3.1242169999998737
 ```
+
+## Docker
+
+See: [docker.md](./docker.md)
 
